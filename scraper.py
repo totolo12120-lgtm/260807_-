@@ -38,18 +38,67 @@ def clean_text(text):
         return ""
     return re.sub(r'\s+', ' ', text).strip()
 
-def get_matched_keywords(text):
-    if not text:
-        return ""
-    text_upper = text.upper()
-    matched = []
-    for kw in KEYWORDS:
-        if kw.upper() in text_upper:
-            matched.append(kw)
-    return ", ".join(matched)
-
 def check_keyword(title):
-    return len(get_matched_keywords(title)) > 0
+    if not title:
+        return False
+    title_upper = title.upper()
+    for kw in KEYWORDS:
+        if kw.upper() in title_upper:
+            return True
+    return False
+
+def extract_core_keyword(title):
+    """
+    공고제목에서 핵심 주제/액션 키워드 추출 (예: '합격자 공고', '모집공고', '선정 결과')
+    """
+    if not title:
+        return "일반 공고"
+    
+    clean = re.sub(r'\[.*?\]|「.*?」|\(.*?\)', ' ', title)
+    clean = re.sub(r'\s+', ' ', clean).strip()
+    
+    if re.search(r'합격자\s*공고', clean):
+        return "합격자 공고"
+    if re.search(r'참여기업\s*(?:\d+차\s*)?모집\s*공고', clean):
+        return "참여기업 모집공고"
+    if re.search(r'창업기업\s*모집\s*공고', clean):
+        return "창업기업 모집공고"
+    if re.search(r'경력(?:경쟁)?채용시험\s*공고', clean):
+        return "경력채용시험 공고"
+    if re.search(r'공개모집|공모집', clean):
+        if '이사장' in title:
+            return "이사장 공개모집"
+        if '직위' in title:
+            return "직위 공개모집"
+        return "공개모집"
+    if re.search(r'선정\s*결과\s*공고', clean):
+        if '보조사업자' in title:
+            return "보조사업자 선정 결과"
+        return "선정 결과 공고"
+    if re.search(r'기술능력평가\s*결과\s*알림', clean):
+        return "기술능력평가 결과 알림"
+    if re.search(r'수상작\s*선정\s*결과', clean):
+        return "공모전 수상작 선정 결과"
+    if re.search(r'행정예고', clean):
+        return "규정 제정 행정예고"
+    if re.search(r'포상\s*후보자\s*공모', clean):
+        return "포상 후보자 공모"
+    if re.search(r'신규\s*지정\s*공모', clean):
+        return "신규 지정 공모"
+    if re.search(r'교육기관\s*선정', clean):
+        return "교육기관 선정 공고"
+    if re.search(r'창업경진대회', clean):
+        return "창업경진대회 공고"
+    if re.search(r'지원사업\s*공고', clean):
+        return "지원사업 공고"
+    if re.search(r'지원계획\s*공고', clean):
+        return "지원계획 공고"
+        
+    match = re.search(r'([가-힣A-Za-z0-9\s]{2,15}(?:모집|공고|공모|결과|알림|예고))$', clean)
+    if match:
+        return match.group(1).strip()
+        
+    return "사업공고"
 
 # 1. 행정안전부 (MOIS)
 def scrape_mois(cutoff_date):
@@ -90,12 +139,12 @@ def scrape_mois(cutoff_date):
                 href = a_tag.get('href', '')
                 link = urljoin('https://www.mois.go.kr', href)
                 
-                matched_kws = get_matched_keywords(title)
-                if matched_kws:
+                if check_keyword(title):
+                    core_kw = extract_core_keyword(title)
                     results.append({
                         '지자체명': '행정안전부',
                         '공고제목': title,
-                        '매칭키워드': matched_kws,
+                        '매칭키워드': core_kw,
                         '등록일': str(reg_date) if reg_date else reg_date_str,
                         '마감일': '상시/정보없음',
                         '링크': link
@@ -162,12 +211,12 @@ def scrape_mss(cutoff_date):
                     parsed_dl = parse_date(dl_match.group(1))
                     deadline = str(parsed_dl) if parsed_dl else dl_match.group(1)
                     
-                matched_kws = get_matched_keywords(raw_title)
-                if matched_kws:
+                if check_keyword(clean_t) or check_keyword(raw_title):
+                    core_kw = extract_core_keyword(clean_t)
                     results.append({
                         '지자체명': '중소벤처기업부',
                         '공고제목': clean_t,
-                        '매칭키워드': matched_kws,
+                        '매칭키워드': core_kw,
                         '등록일': str(reg_date) if reg_date else reg_date_str,
                         '마감일': deadline,
                         '링크': link
@@ -219,12 +268,12 @@ def scrape_moel(cutoff_date):
                 href = a_tag.get('href', '')
                 link = urljoin('https://www.moel.go.kr', href)
                 
-                matched_kws = get_matched_keywords(title)
-                if matched_kws:
+                if check_keyword(title):
+                    core_kw = extract_core_keyword(title)
                     results.append({
                         '지자체명': '고용노동부',
                         '공고제목': title,
-                        '매칭키워드': matched_kws,
+                        '매칭키워드': core_kw,
                         '등록일': str(reg_date) if reg_date else reg_date_str,
                         '마감일': '상시/정보없음',
                         '링크': link
@@ -237,9 +286,10 @@ def scrape_moel(cutoff_date):
     print(f"-> 고용노동부 완료: {len(results)}건 수집됨")
     return results
 
-def save_to_excel(mois_data, mss_data, moel_data):
+def save_to_excel(mois_data, mss_data, moel_data, file_suffix=""):
     today_str = datetime.now().strftime('%Y%m%d')
-    base_file_name = f"타기관벤치마킹_{today_str}.xlsx"
+    suffix_str = f"_{file_suffix}" if file_suffix else ""
+    base_file_name = f"타기관벤치마킹_{today_str}{suffix_str}.xlsx"
     file_name = base_file_name
     
     df_mois = pd.DataFrame(mois_data)
@@ -264,7 +314,7 @@ def save_to_excel(mois_data, mss_data, moel_data):
         df_moel.to_excel(writer, sheet_name='고용노동부', index=False)
         writer.close()
     except PermissionError:
-        file_name = f"타기관벤치마킹_{today_str}_new.xlsx"
+        file_name = f"타기관벤치마킹_{today_str}{suffix_str}_v2.xlsx"
         print(f"\n[주의] {base_file_name} 파일이 열려 있어 {file_name} 로 저장합니다.")
         writer = pd.ExcelWriter(file_name, engine='openpyxl')
         df_total.to_excel(writer, sheet_name='통합비교표', index=False)
@@ -316,7 +366,7 @@ def save_to_excel(mois_data, mss_data, moel_data):
         # Adjust column widths
         ws.column_dimensions['A'].width = 16  # 지자체명
         ws.column_dimensions['B'].width = 65  # 공고제목
-        ws.column_dimensions['C'].width = 20  # 매칭키워드
+        ws.column_dimensions['C'].width = 24  # 매칭키워드
         ws.column_dimensions['D'].width = 14  # 등록일
         ws.column_dimensions['E'].width = 16  # 마감일
         ws.column_dimensions['F'].width = 60  # 링크
@@ -335,6 +385,7 @@ def main():
     moel_data = scrape_moel(cutoff_date)
     
     save_to_excel(mois_data, mss_data, moel_data)
+    save_to_excel(mois_data, mss_data, moel_data, file_suffix="핵심키워드")
 
 if __name__ == '__main__':
     main()
