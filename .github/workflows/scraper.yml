@@ -1,0 +1,39 @@
+name: Weekly Government Notice Scraper
+
+on:
+  schedule:
+    # 매주 월요일 00:00 UTC = 한국시간(KST) 월요일 09:00 실행
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 pandas openpyxl lxml
+
+      - name: Run Web Scraper
+        run: python scraper.py
+
+      - name: Commit and push Excel results
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add *.xlsx
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update benchmarking excel [$(date +'%Y-%m-%d')]" && git push)
