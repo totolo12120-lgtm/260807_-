@@ -33,14 +33,23 @@ def parse_date(date_str):
             pass
     return None
 
-def check_keyword(title):
-    if not title:
-        return False
-    title_upper = title.upper()
+def clean_text(text):
+    if not text:
+        return ""
+    return re.sub(r'\s+', ' ', text).strip()
+
+def get_matched_keywords(text):
+    if not text:
+        return ""
+    text_upper = text.upper()
+    matched = []
     for kw in KEYWORDS:
-        if kw.upper() in title_upper:
-            return True
-    return False
+        if kw.upper() in text_upper:
+            matched.append(kw)
+    return ", ".join(matched)
+
+def check_keyword(title):
+    return len(get_matched_keywords(title)) > 0
 
 # 1. 행정안전부 (MOIS)
 def scrape_mois(cutoff_date):
@@ -70,7 +79,7 @@ def scrape_mois(cutoff_date):
                 a_tag = title_td.find('a')
                 if not a_tag:
                     continue
-                title = title_td.get_text(strip=True)
+                title = clean_text(title_td.get_text())
                 reg_date_str = tds[4].get_text(strip=True)
                 reg_date = parse_date(reg_date_str)
                 
@@ -81,10 +90,12 @@ def scrape_mois(cutoff_date):
                 href = a_tag.get('href', '')
                 link = urljoin('https://www.mois.go.kr', href)
                 
-                if check_keyword(title):
+                matched_kws = get_matched_keywords(title)
+                if matched_kws:
                     results.append({
                         '지자체명': '행정안전부',
                         '공고제목': title,
+                        '매칭키워드': matched_kws,
                         '등록일': str(reg_date) if reg_date else reg_date_str,
                         '마감일': '상시/정보없음',
                         '링크': link
@@ -135,8 +146,8 @@ def scrape_mss(cutoff_date):
                 
                 title_td = tds[1]
                 a_tag = title_td.find('a')
-                raw_title = title_td.get_text(" ", strip=True)
-                clean_title = a_tag.get_text(strip=True) if a_tag else raw_title
+                raw_title = clean_text(title_td.get_text(" "))
+                clean_t = clean_text(a_tag.get_text()) if a_tag else raw_title
                 
                 reg_date_str = tds[3].get_text(strip=True)
                 reg_date = parse_date(reg_date_str)
@@ -151,10 +162,12 @@ def scrape_mss(cutoff_date):
                     parsed_dl = parse_date(dl_match.group(1))
                     deadline = str(parsed_dl) if parsed_dl else dl_match.group(1)
                     
-                if check_keyword(clean_title) or check_keyword(raw_title):
+                matched_kws = get_matched_keywords(raw_title)
+                if matched_kws:
                     results.append({
                         '지자체명': '중소벤처기업부',
-                        '공고제목': clean_title,
+                        '공고제목': clean_t,
+                        '매칭키워드': matched_kws,
                         '등록일': str(reg_date) if reg_date else reg_date_str,
                         '마감일': deadline,
                         '링크': link
@@ -195,7 +208,7 @@ def scrape_moel(cutoff_date):
                 a_tag = title_td.find('a')
                 if not a_tag:
                     continue
-                title = a_tag.get_text(strip=True)
+                title = clean_text(a_tag.get_text())
                 reg_date_str = tds[4].get_text(strip=True)
                 reg_date = parse_date(reg_date_str)
                 
@@ -206,10 +219,12 @@ def scrape_moel(cutoff_date):
                 href = a_tag.get('href', '')
                 link = urljoin('https://www.moel.go.kr', href)
                 
-                if check_keyword(title):
+                matched_kws = get_matched_keywords(title)
+                if matched_kws:
                     results.append({
                         '지자체명': '고용노동부',
                         '공고제목': title,
+                        '매칭키워드': matched_kws,
                         '등록일': str(reg_date) if reg_date else reg_date_str,
                         '마감일': '상시/정보없음',
                         '링크': link
@@ -224,13 +239,14 @@ def scrape_moel(cutoff_date):
 
 def save_to_excel(mois_data, mss_data, moel_data):
     today_str = datetime.now().strftime('%Y%m%d')
-    file_name = f"타기관벤치마킹_{today_str}.xlsx"
+    base_file_name = f"타기관벤치마킹_{today_str}.xlsx"
+    file_name = base_file_name
     
     df_mois = pd.DataFrame(mois_data)
     df_mss = pd.DataFrame(mss_data)
     df_moel = pd.DataFrame(moel_data)
     
-    cols = ['지자체명', '공고제목', '등록일', '마감일', '링크']
+    cols = ['지자체명', '공고제목', '매칭키워드', '등록일', '마감일', '링크']
     for df in [df_mois, df_mss, df_moel]:
         for col in cols:
             if col not in df.columns:
@@ -240,11 +256,22 @@ def save_to_excel(mois_data, mss_data, moel_data):
     if not df_total.empty:
         df_total = df_total.sort_values(by='등록일', ascending=False)
         
-    with pd.ExcelWriter(file_name, engine='openpyxl') as writer:
+    try:
+        writer = pd.ExcelWriter(file_name, engine='openpyxl')
         df_total.to_excel(writer, sheet_name='통합비교표', index=False)
         df_mois.to_excel(writer, sheet_name='행정안전부', index=False)
         df_mss.to_excel(writer, sheet_name='중소벤처기업부', index=False)
         df_moel.to_excel(writer, sheet_name='고용노동부', index=False)
+        writer.close()
+    except PermissionError:
+        file_name = f"타기관벤치마킹_{today_str}_new.xlsx"
+        print(f"\n[주의] {base_file_name} 파일이 열려 있어 {file_name} 로 저장합니다.")
+        writer = pd.ExcelWriter(file_name, engine='openpyxl')
+        df_total.to_excel(writer, sheet_name='통합비교표', index=False)
+        df_mois.to_excel(writer, sheet_name='행정안전부', index=False)
+        df_mss.to_excel(writer, sheet_name='중소벤처기업부', index=False)
+        df_moel.to_excel(writer, sheet_name='고용노동부', index=False)
+        writer.close()
         
     # Excel Formatting
     wb = openpyxl.load_workbook(file_name)
@@ -266,7 +293,7 @@ def save_to_excel(mois_data, mss_data, moel_data):
         ws.views.sheetView[0].showGridLines = True
         
         # Header formatting
-        for col_num in range(1, 6):
+        for col_num in range(1, 7):
             cell = ws.cell(row=1, column=col_num)
             cell.fill = header_fill
             cell.font = header_font
@@ -275,13 +302,13 @@ def save_to_excel(mois_data, mss_data, moel_data):
         # Rows formatting
         for row in range(2, ws.max_row + 1):
             ws.row_dimensions[row].height = 22
-            for col in range(1, 6):
+            for col in range(1, 7):
                 cell = ws.cell(row=row, column=col)
                 cell.font = data_font
                 cell.border = thin_border
                 
                 # Column alignments
-                if col in [1, 3, 4]:  # 지자체명, 등록일, 마감일
+                if col in [1, 3, 4, 5]:  # 지자체명, 매칭키워드, 등록일, 마감일
                     cell.alignment = center_align
                 else:  # 공고제목, 링크
                     cell.alignment = left_align
@@ -289,9 +316,10 @@ def save_to_excel(mois_data, mss_data, moel_data):
         # Adjust column widths
         ws.column_dimensions['A'].width = 16  # 지자체명
         ws.column_dimensions['B'].width = 65  # 공고제목
-        ws.column_dimensions['C'].width = 14  # 등록일
-        ws.column_dimensions['D'].width = 16  # 마감일
-        ws.column_dimensions['E'].width = 60  # 링크
+        ws.column_dimensions['C'].width = 20  # 매칭키워드
+        ws.column_dimensions['D'].width = 14  # 등록일
+        ws.column_dimensions['E'].width = 16  # 마감일
+        ws.column_dimensions['F'].width = 60  # 링크
 
     wb.save(file_name)
     print(f"\n성공적으로 엑셀 파일이 저장되었습니다: {file_name}")
