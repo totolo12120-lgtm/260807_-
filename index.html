@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공공기관 청년·복지·AI 사업공고 수집기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1F497D;
+            --primary-light: #2563EB;
+            --accent: #10B981;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text: #1E293B;
+            --border: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1F497D 0%, #0F2A4A 100%);
+            color: white;
+            padding: 24px 32px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-area h1 {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-area p {
+            font-size: 14px;
+            color: #93C5FD;
+            margin-top: 6px;
+        }
+
+        .badge-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
+
+        .badge.live {
+            background: #10B981;
+            color: white;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1300px;
+            margin: 24px auto;
+            padding: 0 20px;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: var(--card-bg);
+            padding: 18px 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-light);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: #1D4ED8;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: var(--accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F1F5F9;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            width: 320px;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        /* Table Card */
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background-color: #F8FAFC;
+        }
+
+        .tag-agency {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .mois { background: #E0F2FE; color: #0369A1; }
+        .mss { background: #FEF3C7; color: #B45309; }
+        .moel { background: #DCFCE7; color: #15803D; }
+
+        .tag-keyword {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: #EFF6FF;
+            color: #1D4ED8;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .link-btn {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .link-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: #64748B;
+            font-size: 13px;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <h1>🏛️ 공공기관 청년·복지·AI 사업공고 웹 수집기</h1>
+                <p>행정안전부 · 중소벤처기업부 · 고용노동부 사업공고 통합 모니터링</p>
+            </div>
+            <div class="badge-group">
+                <span class="badge live">● 매주 월요일 09:00 KST 자동업데이트</span>
+                <span class="badge">최근 30일 데이터</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="toolbar">
+            <div class="actions">
+                <a href="https://github.com/totolo12120-lgtm/260807_-/actions/workflows/scraper.yml" target="_blank" class="btn btn-primary">
+                    🚀 실시간 수집 실행 (Cloud Run)
+                </a>
+                <a href="https://github.com/totolo12120-lgtm/260807_-/raw/main/%ED%83%80%EA%B8%B0%EA%B4%80%EB%B2%A4%EC%B9%98%EB%A7%88%ED%82%B9_20260807_%ED%95%B5%EC%8B%AC%ED%82%A4%EC%9B%8C%EB%93%9C.xlsx" class="btn btn-success">
+                    📥 최신 엑셀 다운로드 (.xlsx)
+                </a>
+            </div>
+            <div class="search-box">
+                🔍 <input type="text" id="searchInput" placeholder="공고제목, 키워드, 기관명 검색...">
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 120px; text-align: center;">지자체명</th>
+                            <th>공고제목</th>
+                            <th style="width: 180px; text-align: center;">매칭키워드 (핵심주제)</th>
+                            <th style="width: 110px; text-align: center;">등록일</th>
+                            <th style="width: 130px; text-align: center;">마감일</th>
+                            <th style="width: 100px; text-align: center;">링크</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        공공기관 사업공고 자동 수집기 Web Dashboard &copy; 2026. Powered by GitHub Actions & Pages.
+    </footer>
+
+    <script>
+        const initialData = [
+            { agency: "중소벤처기업부", title: "「민관협력 오픈이노베이션 지원」 2026년 ‘성과기업 후속 지원’ 창업기업 모집공고", keyword: "창업기업 모집공고", regDate: "2026-08-06", deadline: "2026-08-26", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1070326" },
+            { agency: "고용노동부", title: "[공고] 2026년 외국인근로자 주거환경개선 지원 보조사업자 선정 결과 공고", keyword: "보조사업자 선정 결과", regDate: "2026-08-05", deadline: "상시/정보없음", link: "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260800173" },
+            { agency: "중소벤처기업부", title: "2026년 해외규격인증획득지원사업(전략지원) 참여기업 모집공고(변경)", keyword: "참여기업 모집공고", regDate: "2026-08-03", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1070215" },
+            { agency: "고용노동부", title: "[공고] 일반임기제 행정5급(사회적금융 정책 지원) 공무원 경력경쟁채용시험 공고", keyword: "경력채용시험 공고", regDate: "2026-08-03", deadline: "상시/정보없음", link: "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260800030" },
+            { agency: "행정안전부", title: "2026년 제2기 행정안전부 본부 청년인턴 최종합격자 공고", keyword: "합격자 공고", regDate: "2026-07-31", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=128313" },
+            { agency: "고용노동부", title: "[공고] 고용노동부 민원 처리 담당자 보호 및 지원에 관한 규정 제정(안) 행정예고", keyword: "규정 제정 행정예고", regDate: "2026-07-31", deadline: "상시/정보없음", link: "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260701070" },
+            { agency: "행정안전부", title: "제설제 분야 국가재난관리지원기업 신규 지정 공모", keyword: "신규 지정 공모", regDate: "2026-07-28", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=128214" },
+            { agency: "행정안전부", title: "행정안전부 전문임기제 공무원(사회연대경제 활성화 지원) 경력경쟁채용시험 공고", keyword: "경력채용시험 공고", regDate: "2026-07-27", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=128199" },
+            { agency: "행정안전부", title: "2026년 사회연대경제 발전 유공(청년마을) 포상 후보자 공모", keyword: "포상 후보자 공모", regDate: "2026-07-27", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=128194" },
+            { agency: "중소벤처기업부", title: "2026년도 방산 특화 창업중심대학 창업기업 모집공고", keyword: "창업기업 모집공고", regDate: "2026-07-27", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1070051" },
+            { agency: "고용노동부", title: "[공고] 제5회 고용노동 공공데이터·AI 활용 공모전 수상작 선정 결과", keyword: "공모전 수상작 선정 결과", regDate: "2026-07-22", deadline: "상시/정보없음", link: "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260700774" },
+            { agency: "행정안전부", title: "「2026년 재난심리회복지원사업 홍보 용역」제안서 기술능력평가 결과 알림", keyword: "기술능력평가 결과 알림", regDate: "2026-07-21", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=128068" },
+            { agency: "행정안전부", title: "재난관리(방재안전분야) 전문인력 양성 교육기관 선정 및 지원계획 공고", keyword: "교육기관 선정 공고", regDate: "2026-07-21", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=128057" },
+            { agency: "중소벤처기업부", title: "2026년 중소기업 챌린지진단 지원사업 공고", keyword: "지원사업 공고", regDate: "2026-07-20", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069923" },
+            { agency: "중소벤처기업부", title: "2026년 온라인수출 중소기업 물류 지원사업 참여기업 2차 모집 공고", keyword: "참여기업 모집공고", regDate: "2026-07-16", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069894" },
+            { agency: "중소벤처기업부", title: "「민관협력 오픈이노베이션 지원」 2026년 제2차 방산 스타트업 챌린지(모두의 챌린지–방산) 창업기업 모집공고", keyword: "창업기업 모집공고", regDate: "2026-07-16", deadline: "2026-08-04", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069893" },
+            { agency: "중소벤처기업부", title: "2026년 해외규격인증획득지원사업(일반지원) 2차 참여기업 모집공고", keyword: "참여기업 모집공고", regDate: "2026-07-15", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069888" },
+            { agency: "행정안전부", title: "행정안전부 전문임기제공무원(인공지능 기획) 경력채용시험 공고", keyword: "경력채용시험 공고", regDate: "2026-07-15", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=127882" },
+            { agency: "고용노동부", title: "[인사] 고용노동부 공모 직위(고용지원실업급여과장) 공개모집(연장)", keyword: "직위 공개모집", regDate: "2026-07-14", deadline: "상시/정보없음", link: "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260700445" },
+            { agency: "행정안전부", title: "제14회 범정부 공공데이터 AI 활용 창업경진대회 수정 통합공고", keyword: "창업경진대회 공고", regDate: "2026-07-13", deadline: "상시/정보없음", link: "https://www.mois.go.kr/frt/bbs/type013/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000006&nttId=127805" },
+            { agency: "중소벤처기업부", title: "2026년도 투·융자연계 기술개발사업(스케일업팁스, 글로벌팁스, DCP) 지원계획 공고(수정)", keyword: "지원계획 공고", regDate: "2026-07-10", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069752" },
+            { agency: "중소벤처기업부", title: "2026년도 딥테크 특화 창업중심대학 창업기업 모집공고(연장)", keyword: "창업기업 모집공고", regDate: "2026-07-09", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069695" },
+            { agency: "고용노동부", title: "[공고] 근로복지공단 이사장 공개 모집", keyword: "근로복지공단 이사장 공개 모집", regDate: "2026-07-09", deadline: "상시/정보없음", link: "https://www.moel.go.kr/news/notice/noticeView.do?bbs_seq=20260700259" },
+            { agency: "중소벤처기업부", title: "2026년 수출지원기반활용사업 참여기업 3차 모집공고", keyword: "참여기업 모집공고", regDate: "2026-07-08", deadline: "상시/정보없음", link: "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069634" }
+        ];
+
+        function getAgencyClass(agency) {
+            if (agency.includes("행정안전부")) return "mois";
+            if (agency.includes("중소벤처기업부")) return "mss";
+            if (agency.includes("고용노동부")) return "moel";
+            return "";
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td style="text-align: center;"><span class="tag-agency ${getAgencyClass(row.agency)}">${row.agency}</span></td>
+                    <td style="font-weight: 600;">${row.title}</td>
+                    <td style="text-align: center;"><span class="tag-keyword">${row.keyword}</span></td>
+                    <td style="text-align: center; color: #64748B;">${row.regDate}</td>
+                    <td style="text-align: center; color: #64748B;">${row.deadline}</td>
+                    <td style="text-align: center;">
+                        <a href="${row.link}" target="_blank" class="link-btn">열기 ↗</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderTable(initialData);
+
+        document.getElementById("searchInput").addEventListener("input", function(e) {
+            const query = e.target.value.toLowerCase().strip ? e.target.value.toLowerCase().strip() : e.target.value.toLowerCase().trim();
+            const filtered = initialData.filter(row => 
+                row.agency.toLowerCase().includes(query) ||
+                row.title.toLowerCase().includes(query) ||
+                row.keyword.toLowerCase().includes(query) ||
+                row.regDate.includes(query) ||
+                row.deadline.includes(query)
+            );
+            renderTable(filtered);
+        });
+    </script>
+</body>
+</html>
